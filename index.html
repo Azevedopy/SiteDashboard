@@ -2904,7 +2904,6 @@
                 const member = {
                     id: this.currentEditId || Date.now(),
                     name: document.getElementById('name').value.trim(),
-                    birthDate: document.getElementById('birthDate').value,
                     phone: document.getElementById('phone').value.trim(),
                     email: document.getElementById('email').value.trim(),
                     position: document.getElementById('position').value,
@@ -3038,7 +3037,6 @@
                 const member = this.members.find(m => m.id === id);
                 if (member) {
                     document.getElementById('name').value = member.name;
-                    document.getElementById('birthDate').value = member.birthDate;
                     document.getElementById('phone').value = member.phone;
                     document.getElementById('email').value = member.email;
                     document.getElementById('position').value = member.position;
@@ -3139,10 +3137,6 @@
                                     <span>Cargo:</span>
                                     <span>${this.getPositionLabel(member.position)}</span>
                                 </div>
-                                <div>
-                                    <span>Data Nasc.:</span>
-                                    <span>${member.birthDate || 'Não informada'}</span>
-                                </div>
                             </div>
                             
                             <div class="member-actions">
@@ -3240,7 +3234,6 @@
                                 phone: item.telefone || '',
                                 email: item.email || '',
                                 position: item.cargo || '',
-                                birthDate: '', // Não temos data_nascimento no banco
                                 status: status,
                                 registrationDate: item.data_cadastro ? 
                                 new Date(item.data_cadastro).toISOString().split('T')[0] : 
@@ -3256,23 +3249,6 @@
 
                         // Manter membros locais que não estão no Supabase (por precaução)
                         const localMembersNotInSupabase = this.members.filter(m => !m.supabaseId && !supabaseMap.has(m.id));
-                        
-                        // Para membros que já temos localmente, mesclar dados mantendo birthDate
-                        const mergedMembers = this.members
-                            .filter(m => m.supabaseId || supabaseMap.has(m.id))
-                            .map(localMember => {
-                                const supabaseId = localMember.supabaseId || localMember.id;
-                                const supabaseMember = supabaseMap.get(supabaseId);
-                                
-                                if (supabaseMember) {
-                                    supabaseMap.delete(supabaseId); // Remover do mapa para não adicionar duplicado
-                                    return {
-                                        ...supabaseMember,
-                                        birthDate: localMember.birthDate // Manter a data de nascimento local
-                                    };
-                                }
-                                return localMember;
-                            });
 
                         // Adicionar membros restantes do Supabase (que não tinham correspondência local)
                         const remainingSupabaseMembers = Array.from(supabaseMap.values());
@@ -3303,7 +3279,6 @@
                         '"' + m.phone + '"',
                         '"' + this.getPositionLabel(m.position) + '"',
                         '"' + (m.status === 'active' ? 'Ativo' : m.status === 'inactive' ? 'Inativo' : 'Pendente') + '"',
-                        '"' + (m.birthDate || '') + '"',
                         '"' + (m.registrationDate || '') + '"'
                     ].join(','))
                 ].join('\n');
